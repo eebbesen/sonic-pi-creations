@@ -17,14 +17,39 @@ def random_chord
   chords.choose
 end
 
+# provides incrment for linear progression
+# from span to target value
+def coalesce_to_tempo(target, span, start = [0,1])
+  low = start[0]
+  high = start[1]
+
+  (target - (high - low)).abs / span
+end
+
+@target_sleep = 0.5
+@loops_to_interval = 30
+@interval = coalesce_to_tempo(@target_sleep, @loops_to_interval)
+@counter = 0
+
 live_loop :drums do
+  @counter += 1
+  adj = @interval * @counter
   sample drums.choose
-  sleep rrand(0.0, 1)
+
+  if @counter < @loops_to_interval
+    sleep rrand(0 + adj, 1 - adj)
+  elsif @counter == @loops_to_interval
+    sync :tick
+    puts "SYNCED *****************"
+  else
+    sleep @target_sleep
+  end
 end
 
 live_loop :notes do
   note = random_note
   play note
+  cue :tick
 
   sleep 0.5
 end
