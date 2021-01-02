@@ -31,39 +31,47 @@ def adj
 end
 
 @target_sleep = 0.5
-@loops_to_interval = 30
+@loops_to_interval = 20
 @interval = coalesce_to_tempo(@target_sleep, @loops_to_interval)
 @counter = 0
+@random_counter = 0
 @synced = false
 
 live_loop :random_drums do
   sample drums.choose
 
-  if @counter < @loops_to_interval
+  if @random_counter < @loops_to_interval
     sleep rrand(0 + adj, 1 - adj)
-  elsif @counter == @loops_to_interval
+  elsif @random_counter == @loops_to_interval
     sync :tick
     @synced = true
-  elsif @counter > 2 * @loops_to_interval
+  elsif @random_counter > 2 * @loops_to_interval
     stop
   else
     sync :tick
     sleep @target_sleep + adj
   end
-  @counter += 1
+  @random_counter += 1
 end
 
 live_loop :explicit_drums do
   sync :tick
   if @synced
     sample :drum_cymbal_pedal
+    if 3 - adj > 2
+      sleep 3 - adj
+    else
+      sleep 2
+    end
   end
 end
 
+# driving loop -- controls tick and counter
 live_loop :notes do
   note = random_note
   play note
   cue :tick
 
   sleep @target_sleep
+  @counter += 1
 end
