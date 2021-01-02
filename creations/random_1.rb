@@ -17,6 +17,36 @@ def random_chord
   chords.choose
 end
 
+# @dhh will double the high hat
+def explicit_drums(sleep_time)
+  sample :drum_cymbal_pedal, pan: -0.8
+  with_fx :reverb do
+    sample :drum_heavy_kick
+    sample :drum_tom_mid_soft, pan: 0.3
+  end
+  sleep sleep_time / 2
+  sample :drum_cymbal_pedal, pan: -0.8 if @dhh
+  sleep sleep_time / 2
+
+  sample :drum_cymbal_pedal, pan: -0.8
+  sleep sleep_time / 2
+  sample :drum_cymbal_pedal, pan: -0.8 if @dhh
+  sleep sleep_time / 2
+
+  sample :drum_cymbal_pedal, pan: -0.8
+  with_fx :reverb do
+    sample :drum_snare_hard, pan: -0.3
+  end
+  sleep sleep_time / 2
+  sample :drum_cymbal_pedal, pan: -0.8 if @dhh
+  sleep sleep_time / 2
+
+  sample :drum_cymbal_pedal, pan: -0.8
+  sleep sleep_time / 2
+  sample :drum_cymbal_pedal, pan: -0.8 if @dhh
+  sleep sleep_time / 2
+end
+
 # provides incrment for linear progression
 # from span to target value
 def coalesce_to_tempo(target, span, start = [0,1])
@@ -54,6 +84,8 @@ live_loop :random_drums do
   @random_counter += 1
 end
 
+# gradually, linearly move into constant tempo
+# set @dhh to double the hihat tempo
 live_loop :explicit_drums do
   sync :tick
   if @synced
@@ -62,24 +94,8 @@ live_loop :explicit_drums do
     else
       2
     end
-
-    sample :drum_cymbal_pedal, pan: -0.8
-    with_fx :reverb do
-      sample :drum_heavy_kick
-      sample :drum_tom_mid_soft, pan: 0.3
-    end
-    sleep base_sleep
-    sample :drum_cymbal_pedal, pan: -0.8
-    sleep base_sleep
-
-    sample :drum_cymbal_pedal, pan: -0.8
-    with_fx :reverb do
-      sample :drum_snare_hard, pan: -0.3
-    end
-    sleep base_sleep
-
-    sample :drum_cymbal_pedal, pan: -0.8
-    sleep base_sleep
+    @dhh = true if @counter > 6 * @loops_to_interval
+    explicit_drums(base_sleep)
   end
 end
 
