@@ -1,4 +1,4 @@
-drums = [:drum_heavy_kick, :drum_tom_mid_soft, :drum_tom_mid_hard, :drum_tom_lo_soft, :drum_tom_lo_hard, :drum_tom_hi_soft, :drum_tom_hi_hard, :drum_splash_soft, :drum_splash_hard, :drum_snare_soft, :drum_snare_hard, :drum_cymbal_soft, :drum_cymbal_hard, :drum_cymbal_open, :drum_cymbal_closed, :drum_cymbal_pedal, :drum_bass_soft, :drum_bass_hard, :elec_triangle, :elec_snare, :elec_lo_snare, :elec_hi_snare, :elec_mid_snare, :elec_cymbal, :elec_soft_kick, :elec_filt_snare, :elec_fuzz_tom, :elec_chime, :elec_bong, :elec_twang, :elec_wood, :elec_pop,  :elec_blip, :elec_blip2, :elec_ping, :elec_bell, :elec_flip, :elec_tick, :elec_hollow_kick, :elec_twip, :elec_plip, :elec_blup, :sn_dub, :sn_dolf, :sn_zome, :bd_ada, :bd_pure, :bd_808, :bd_zum, :bd_gas, :bd_sone, :bd_haus, :bd_zome, :bd_boom, :bd_klub, :bd_fat, :bd_tek]
+@drums = [:drum_heavy_kick, :drum_tom_mid_soft, :drum_tom_mid_hard, :drum_tom_lo_soft, :drum_tom_lo_hard, :drum_tom_hi_soft, :drum_tom_hi_hard, :drum_splash_soft, :drum_splash_hard, :drum_snare_soft, :drum_snare_hard, :drum_cymbal_soft, :drum_cymbal_hard, :drum_cymbal_open, :drum_cymbal_closed, :drum_cymbal_pedal, :drum_bass_soft, :drum_bass_hard, :elec_triangle, :elec_snare, :elec_lo_snare, :elec_hi_snare, :elec_mid_snare, :elec_cymbal, :elec_soft_kick, :elec_filt_snare, :elec_fuzz_tom, :elec_chime, :elec_bong, :elec_twang, :elec_wood, :elec_pop,  :elec_blip, :elec_blip2, :elec_ping, :elec_bell, :elec_flip, :elec_tick, :elec_hollow_kick, :elec_twip, :elec_plip, :elec_blup, :sn_dub, :sn_dolf, :sn_zome, :bd_ada, :bd_pure, :bd_808, :bd_zum, :bd_gas, :bd_sone, :bd_haus, :bd_zome, :bd_boom, :bd_klub, :bd_fat, :bd_tek]
 
 # default range avoids hard-to-hear notes
 # gives a mysterious feel
@@ -87,16 +87,29 @@ def adj
   @interval * @counter
 end
 
+# as we move from chaos to order remove synthetic drum sounds
+def alter_drums
+  return if @drums_altered
+  @drums = @drums.select{|i| i.to_s.start_with? 'drum'}
+  @drums_altered = true
+  puts "ALTERED DRUMS AT COUNTER #{@counter} and RANDOM_COUNTER #{@random_counter}"
+end
+
+## instance variables for sharing
 @target_sleep = 0.5
 @loops_to_interval = 20
 @interval = coalesce_to_tempo(@target_sleep, @loops_to_interval)
-@counter = 0
-@random_counter = 0
-@synced = false
+@counter = 0 # numbrer of times driving loop has been called
+@random_counter = 0 # number of times random_drums has been called
+@synced = false # when random drums get synced to main thread
+@dhh = false # double hi-hat if true
+@drums_altered = false
 
+# gverb on random drum sounds linearly lessens
 live_loop :random_drums do
-  sample drums.choose
-
+  with_fx :gverb, room: [1.5 - adj, 1.0].max, dry: adj * 10, mix: [[0.3 - adj/10, 0].max , 0.3].min do
+    sample @drums.choose
+  end
   if @random_counter < @loops_to_interval
     sleep rrand(0 + adj, 1 - adj)
   elsif @random_counter == @loops_to_interval
@@ -110,6 +123,10 @@ live_loop :random_drums do
     sleep @target_sleep + adj
   end
   @random_counter += 1
+
+  if @random_counter > (@loops_to_interval * 1.5)
+    alter_drums
+  end
 end
 
 # gradually, linearly move into constant tempo
@@ -138,9 +155,9 @@ live_loop :notes do
   play note
   cue :tick
 
-  @dhh = true if @counter > 7 * @loops_to_interval
+  @dhh = true if @counter > 8 * @loops_to_interval
   @dhh = false if @counter > 11 * @loops_to_interval
   sleep @target_sleep
   @counter += 1
-  puts "COUNTER: #{@counter}\nSTART_SYNC: #{@start_sync}\nLOOPS_TO_INTERVAL: #{@loops_to_interval}"
+  puts "COUNTER: #{@counter} START_SYNC: #{@start_sync} LOOPS_TO_INTERVAL: #{@loops_to_interval} ADJ: #{adj}"
 end
