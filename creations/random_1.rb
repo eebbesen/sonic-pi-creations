@@ -17,34 +17,35 @@ def random_chord
   chords.choose
 end
 
+def hi_hat(sleep_time = nil)
+  sample :drum_cymbal_pedal, pan: -0.8
+  if sleep_time
+    sleep sleep_time
+    sample :drum_cymbal_pedal, pan: -0.8
+  end
+end
+
 # @dhh will double the high hat
 def explicit_drums(sleep_time)
-  sample :drum_cymbal_pedal, pan: -0.8
+  hhs = @dhh ? sleep_time / 2 : nil
+  hi_hat hhs
   with_fx :reverb do
     sample :drum_heavy_kick
     sample :drum_tom_mid_soft, pan: 0.3
   end
-  sleep sleep_time / 2
-  sample :drum_cymbal_pedal, pan: -0.8 if @dhh
-  sleep sleep_time / 2
+  sleep sleep_time
 
-  sample :drum_cymbal_pedal, pan: -0.8
-  sleep sleep_time / 2
-  sample :drum_cymbal_pedal, pan: -0.8 if @dhh
-  sleep sleep_time / 2
+  hi_hat hhs
+  sleep sleep_time
 
-  sample :drum_cymbal_pedal, pan: -0.8
   with_fx :reverb do
     sample :drum_snare_hard, pan: -0.3
   end
-  sleep sleep_time / 2
-  sample :drum_cymbal_pedal, pan: -0.8 if @dhh
-  sleep sleep_time / 2
+  hi_hat hhs
+  sleep sleep_time
 
-  sample :drum_cymbal_pedal, pan: -0.8
-  sleep sleep_time / 2
-  sample :drum_cymbal_pedal, pan: -0.8 if @dhh
-  sleep sleep_time / 2
+  hi_hat hhs
+  sleep sleep_time
 end
 
 # provides incrment for linear progression
@@ -94,7 +95,7 @@ live_loop :explicit_drums do
     else
       2
     end
-    @dhh = true if @counter > 6 * @loops_to_interval
+
     explicit_drums(base_sleep)
   end
 end
@@ -105,6 +106,7 @@ live_loop :notes do
   play note
   cue :tick
 
+  @dhh = true if @counter > 6 * @loops_to_interval
   sleep @target_sleep
   @counter += 1
 end
