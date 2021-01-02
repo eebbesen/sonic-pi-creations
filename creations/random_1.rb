@@ -30,8 +30,9 @@ end
 @loops_to_interval = 30
 @interval = coalesce_to_tempo(@target_sleep, @loops_to_interval)
 @counter = 0
+@synced = false
 
-live_loop :drums do
+live_loop :random_drums do
   @counter += 1
   adj = @interval * @counter
   sample drums.choose
@@ -41,6 +42,7 @@ live_loop :drums do
   elsif @counter == @loops_to_interval
     sync :tick
     puts "SYNCED *****************"
+    @synced = true
   else
     sleep @target_sleep
   end
@@ -51,5 +53,5 @@ live_loop :notes do
   play note
   cue :tick
 
-  sleep 0.5
+  sleep @target_sleep
 end
