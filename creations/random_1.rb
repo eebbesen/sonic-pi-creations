@@ -57,12 +57,23 @@ end
 live_loop :explicit_drums do
   sync :tick
   if @synced
-    sample :drum_cymbal_pedal
-    if 3 - adj > 2
-      sleep 3 - adj
+    base_sleep = if 3 - adj > 2
+      3 - adj
     else
-      sleep 2
+      2
     end
+
+    sample :drum_cymbal_pedal, pan: -0.8
+    sample :drum_heavy_kick # add reverb and/or volume
+    sample :drum_tom_mid_soft, pan: 0.3
+    sleep base_sleep
+    sample :drum_cymbal_pedal, pan: -0.8
+    sleep base_sleep
+    sample :drum_cymbal_pedal, pan: -0.8
+    sample :drum_snare_soft, pan: -0.3 # add reverb and/or volume
+    sleep base_sleep
+    sample :drum_cymbal_pedal, pan: -0.8
+    sleep base_sleep
   end
 end
 
