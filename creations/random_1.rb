@@ -64,14 +64,20 @@ live_loop :explicit_drums do
     end
 
     sample :drum_cymbal_pedal, pan: -0.8
-    sample :drum_heavy_kick # add reverb and/or volume
-    sample :drum_tom_mid_soft, pan: 0.3
+    with_fx :reverb do
+      sample :drum_heavy_kick
+      sample :drum_tom_mid_soft, pan: 0.3
+    end
     sleep base_sleep
     sample :drum_cymbal_pedal, pan: -0.8
     sleep base_sleep
+
     sample :drum_cymbal_pedal, pan: -0.8
-    sample :drum_snare_soft, pan: -0.3 # add reverb and/or volume
+    with_fx :reverb do
+      sample :drum_snare_hard, pan: -0.3
+    end
     sleep base_sleep
+
     sample :drum_cymbal_pedal, pan: -0.8
     sleep base_sleep
   end
