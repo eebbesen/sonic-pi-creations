@@ -17,67 +17,61 @@ def random_chord
   chords.choose
 end
 
-def hi_hat(sleep_time = nil)
-  sample :drum_cymbal_pedal, pan: -0.8
-  if sleep_time
-    sleep sleep_time
-    sample :drum_cymbal_pedal, pan: -0.8
+def snare
+  with_fx :reverb do
+    sample :drum_snare_hard, pan: -0.3
   end
 end
 
-# @dhh will double the high hat
+def kick
+  with_fx :reverb do
+    sample :drum_heavy_kick
+    sample :drum_tom_mid_soft, pan: 0.3
+  end
+end
+
+# doubles the hi-hat if sleep time is passed in
+def hh(sleep_time = nil)
+  sample :drum_cymbal_pedal, pan: -0.8
+  if sleep_time
+    sleep sleep_time
+    hh
+  end
+end
+
+# @dhh will double the hi-hat
+# by default hi-hat already between kick and snare
 def explicit_drums(sleep_time)
   hhs = @dhh ? sleep_time / 2 : nil
   puts "NON-EVEN DRUMS: sleep #{hhs}; dhh: #{@dhh}"
 
-  with_fx :reverb do
-    sample :drum_heavy_kick
-    sample :drum_tom_mid_soft, pan: 0.3
-  end
-  hi_hat hhs
+  kick
+  hh hhs
   sleep hhs || sleep_time
 
-  hi_hat hhs
+  hh hhs
   sleep hhs || sleep_time
 
-  with_fx :reverb do
-    sample :drum_snare_hard, pan: -0.3
-  end
-  hi_hat hhs
+  snare
+  hh hhs
   sleep hhs || sleep_time
 
-  hi_hat hhs
+  hh hhs
   sleep hhs || sleep_time
 end
 
+# @dhh will double the high hat
 def explicit_drums_even(sleep_time)
   hhs = @dhh ? sleep_time / 2 : nil
   puts "EVEN DRUMS: sleep #{hhs}; dhh: #{@dhh}"
 
-  with_fx :reverb do
-    sample :drum_heavy_kick
-    sample :drum_tom_mid_soft, pan: 0.3
-  end
-  sample :drum_cymbal_pedal, pan: -0.8
+  kick
+  hh hhs
+  sleep hhs || sleep_time
 
-  if hhs
-    sleep hhs
-    sample :drum_cymbal_pedal, pan: -0.8
-  else
-    sleep sleep_time
-  end
-
-  with_fx :reverb do
-    sample :drum_snare_hard, pan: -0.3
-  end
-  sample :drum_cymbal_pedal, pan: -0.8
-
-  if hhs
-    sleep hhs
-    sample :drum_cymbal_pedal, pan: -0.8
-  else
-    sleep sleep_time
-  end
+  snare
+  hh hhs
+  sleep hhs || sleep_time
 end
 
 # provides incrment for linear progression
@@ -144,7 +138,7 @@ live_loop :notes do
   play note
   cue :tick
 
-  @dhh = true if @counter > 8 * @loops_to_interval
+  @dhh = true if @counter > 7 * @loops_to_interval
   @dhh = false if @counter > 11 * @loops_to_interval
   sleep @target_sleep
   @counter += 1
