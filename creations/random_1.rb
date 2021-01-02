@@ -28,24 +28,56 @@ end
 # @dhh will double the high hat
 def explicit_drums(sleep_time)
   hhs = @dhh ? sleep_time / 2 : nil
-  hi_hat hhs
+  puts "NON-EVEN DRUMS: sleep #{hhs}; dhh: #{@dhh}"
+
   with_fx :reverb do
     sample :drum_heavy_kick
     sample :drum_tom_mid_soft, pan: 0.3
   end
-  sleep sleep_time
+  hi_hat hhs
+  sleep hhs || sleep_time
 
   hi_hat hhs
-  sleep sleep_time
+  sleep hhs || sleep_time
 
   with_fx :reverb do
     sample :drum_snare_hard, pan: -0.3
   end
   hi_hat hhs
-  sleep sleep_time
+  sleep hhs || sleep_time
 
   hi_hat hhs
-  sleep sleep_time
+  sleep hhs || sleep_time
+end
+
+def explicit_drums_even(sleep_time)
+  hhs = @dhh ? sleep_time / 2 : nil
+  puts "EVEN DRUMS: sleep #{hhs}; dhh: #{@dhh}"
+
+  with_fx :reverb do
+    sample :drum_heavy_kick
+    sample :drum_tom_mid_soft, pan: 0.3
+  end
+  sample :drum_cymbal_pedal, pan: -0.8
+
+  if hhs
+    sleep hhs
+    sample :drum_cymbal_pedal, pan: -0.8
+  else
+    sleep sleep_time
+  end
+
+  with_fx :reverb do
+    sample :drum_snare_hard, pan: -0.3
+  end
+  sample :drum_cymbal_pedal, pan: -0.8
+
+  if hhs
+    sleep hhs
+    sample :drum_cymbal_pedal, pan: -0.8
+  else
+    sleep sleep_time
+  end
 end
 
 # provides incrment for linear progression
@@ -76,6 +108,7 @@ live_loop :random_drums do
   elsif @random_counter == @loops_to_interval
     sync :tick
     @synced = true
+    @start_sync = @counter
   elsif @random_counter > 2 * @loops_to_interval
     stop
   else
@@ -87,6 +120,7 @@ end
 
 # gradually, linearly move into constant tempo
 # set @dhh to double the hihat tempo
+# set @start_sync to control even or uneven drums
 live_loop :explicit_drums do
   sync :tick
   if @synced
@@ -96,7 +130,11 @@ live_loop :explicit_drums do
       2
     end
 
-    explicit_drums(base_sleep)
+    if @counter - @start_sync > 70 && @counter - @start_sync < 125
+      explicit_drums_even(base_sleep)
+    else
+      explicit_drums(base_sleep)
+    end
   end
 end
 
@@ -106,7 +144,9 @@ live_loop :notes do
   play note
   cue :tick
 
-  @dhh = true if @counter > 6 * @loops_to_interval
+  @dhh = true if @counter > 8 * @loops_to_interval
+  @dhh = false if @counter > 11 * @loops_to_interval
   sleep @target_sleep
   @counter += 1
+  puts "COUNTER: #{@counter}\nSTART_SYNC: #{@start_sync}\nLOOPS_TO_INTERVAL: #{@loops_to_interval}"
 end
