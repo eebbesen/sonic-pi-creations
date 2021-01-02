@@ -26,6 +26,10 @@ def coalesce_to_tempo(target, span, start = [0,1])
   (target - (high - low)).abs / span
 end
 
+def adj
+  @interval * @counter
+end
+
 @target_sleep = 0.5
 @loops_to_interval = 30
 @interval = coalesce_to_tempo(@target_sleep, @loops_to_interval)
@@ -33,18 +37,26 @@ end
 @synced = false
 
 live_loop :random_drums do
-  @counter += 1
-  adj = @interval * @counter
   sample drums.choose
 
   if @counter < @loops_to_interval
     sleep rrand(0 + adj, 1 - adj)
   elsif @counter == @loops_to_interval
     sync :tick
-    puts "SYNCED *****************"
     @synced = true
+  elsif @counter > 2 * @loops_to_interval
+    stop
   else
-    sleep @target_sleep
+    sync :tick
+    sleep @target_sleep + adj
+  end
+  @counter += 1
+end
+
+live_loop :explicit_drums do
+  sync :tick
+  if @synced
+    sample :drum_cymbal_pedal
   end
 end
 
