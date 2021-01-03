@@ -7,3 +7,4 @@ Helpful code snippets for working with Sonic Pi in
 
 ## resources
 * https://github.com/sonic-pi-net/sonic-pi/blob/main/etc/doc/cheatsheets/samples.md
+* https://sonic-pi.mehackit.org/
