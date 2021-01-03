@@ -26,6 +26,7 @@ end
 def kick
   with_fx :reverb do
     sample :drum_heavy_kick
+    sample :bd_boom, amp: 10
     sample :drum_tom_mid_soft, pan: 0.3
   end
 end
@@ -155,9 +156,13 @@ live_loop :notes do
   play note
   cue :tick
 
-  @dhh = true if @counter > 8 * @loops_to_interval
-  @dhh = false if @counter > 11 * @loops_to_interval
+  @dhh = true if @counter > 5 * @loops_to_interval
+  @dhh = false if @counter > 9 * @loops_to_interval
   sleep @target_sleep
   @counter += 1
-  puts "COUNTER: #{@counter} START_SYNC: #{@start_sync} LOOPS_TO_INTERVAL: #{@loops_to_interval} ADJ: #{adj}"
+  puts "COUNTER: #{@counter}"
+  puts "START_SYNC: #{@start_sync}"
+  puts "LOOPS_TO_INTERVAL: #{@loops_to_interval}"
+  puts "ADJ: #{adj}"
+  puts "DHH: #{@dhh}"
 end
