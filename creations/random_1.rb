@@ -104,7 +104,9 @@ end
 @random_counter = 0 # number of times random_drums has been called
 @synced = false # when random drums get synced to main thread
 @dhh = false # double hi-hat if true
-@drums_altered = false
+@drums_altered = false # have we reduced the number of random drum sounds
+@note_pan_low = -1
+@note_pan_high = 1
 
 # gverb on random drum sounds linearly lessens
 live_loop :random_drums do
@@ -153,7 +155,7 @@ end
 # driving loop -- controls tick and counter
 live_loop :notes do
   note = random_note
-  play note
+  play note, pan: rrand(@note_pan_low, @note_pan_high)
   cue :tick
 
   @dhh = true if @counter > 5 * @loops_to_interval
